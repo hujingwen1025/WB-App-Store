@@ -1,0 +1,41 @@
+{
+  "name": "wb-app-store",
+  "version": "1.0.0",
+  "description": "Web Based App Store for Mac",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build-mac": "electron-builder --mac",
+    "dist": "electron-builder"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hujingwen1025/WB-App-Store.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hujingwen1025/WB-App-Store/issues"
+  },
+  "homepage": "https://github.com/hujingwen1025/WB-App-Store#readme",
+  "devDependencies": {
+    "electron": "^39.1.2",
+    "electron-builder": "^26.0.12"
+  },
+  "mac": {
+    "category": "public.app-category.developer-tools",
+    "target": "dmg"
+  },
+  "build": {
+    "appId": "com.exabyte.wbappstore",
+    "productName": "WB App Store",
+    "mac": {
+      "icon": "wbas.icns"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "extraResources": ["./extraResources/**"]
+  }
+}
