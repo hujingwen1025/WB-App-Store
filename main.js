@@ -43,7 +43,6 @@ function createProgressWindow() {
 }
 
 function updateProgress(status, progress, cancellable = false) {
-    console.log(status)
     if (progressWindow && !progressWindow.isDestroyed()) {
         progressWindow.webContents.send('update-progress', [ status, progress, cancellable ]);
     }
@@ -82,11 +81,9 @@ async function checkAppVersion() {
   try {
     // Don't check for updates if one is already running or dialog is open
     if (isUpdating || updateDialogOpen) {
-      console.log("Update already in progress or dialog open, skipping check");
       return 0;
     }
 
-    console.log("Checking for updates...    ")
     // Get current and remote versions
     const currentVersion = app.getVersion();
     const remoteVersion = await getRemoteVersion();
@@ -97,7 +94,6 @@ async function checkAppVersion() {
 
     // Don't prompt if user already rejected this version
     if (rejectedUpdateVersion === remoteVersion) {
-      console.log("User previously rejected update to version " + remoteVersion);
       return 0;
     }
 
@@ -118,7 +114,6 @@ async function checkAppVersion() {
     if (response !== 0) {
       // User rejected the update - store the version to avoid asking again this session
       rejectedUpdateVersion = remoteVersion;
-      console.log("User rejected update to version " + remoteVersion);
       return 0;
     }
 
@@ -133,7 +128,6 @@ async function checkAppVersion() {
     await new Promise(resolve => setTimeout(resolve, 500));
     updateProgress('Downloading update...', 10, true);
 
-    console.log(os.tmpdir())
     // Download and install update
     const downloadUrl = `https://github.com/hujingwen1025/WB-App-Store/releases/download/v${remoteVersion}/WB.App.Store.v${remoteVersion}.zip`;
     const zipPath = path.join(os.tmpdir(), `WB.App.Store.v${remoteVersion}.zip`);
@@ -332,7 +326,6 @@ async function downloadFile(url, outputPath) {
 }
 
 async function extractZip(zipPath, extractPath) {
-    console.log(zipPath, extractPath)
   try {
     // Remove extraction path if it exists to avoid conflicts
     await runCommandAndWait(`rm -rf "${extractPath}"`);
@@ -356,7 +349,6 @@ async function moveApp(sourceDir, destPath, appName) {
   await fsPromises.mkdir(path.dirname(destPath), { recursive: true });
   
   // Remove existing app if present - use force remove to ensure complete deletion
-  console.log(destPath)
   try {
     await runCommandAndWait(`rm -rf "${destPath}"`);
   } catch (err) {
@@ -430,7 +422,8 @@ function notifyAppUninstalling() {
 async function installMacApp(appId) {
     currentlyInstallingApp = appId
     notifyAppInstalling()
-    await runCommandAndWait(`'${scriptPath}' purchase ${appId}`);
+    var installCommand = `sudo '${scriptPath}' get ${appId}`
+    var pold = await runCommandAndWait(`osascript -e "do shell script \\"${command}\\" with administrator privileges"`);
     currentlyInstallingApp = ''
     mainWindow.webContents.send('main-message', 'app-installed');
 }
@@ -566,7 +559,6 @@ app.whenReady().then(async () => {
           break;
         case 'cancel-update':
           isCancelingUpdate = true;
-          console.log("Update cancellation requested by user");
           break;
       }
     });

@@ -1,6 +1,6 @@
 {
   "name": "WB-App-Store",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Web Based App Store for Mac",
   "main": "main.js",
   "scripts": {
