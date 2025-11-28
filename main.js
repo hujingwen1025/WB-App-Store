@@ -79,12 +79,10 @@ async function runCommandAndWait(command) {
 
 async function checkAppVersion() {
   try {
-    // Don't check for updates if one is already running or dialog is open
     if (isUpdating || updateDialogOpen) {
       return 0;
     }
 
-    // Get current and remote versions
     const currentVersion = app.getVersion();
     const remoteVersion = await getRemoteVersion();
     
@@ -92,18 +90,15 @@ async function checkAppVersion() {
       return 0;
     }
 
-    // Don't prompt if user already rejected this version
     if (rejectedUpdateVersion === remoteVersion) {
       return 0;
     }
 
-    // Mark dialog as open
     updateDialogOpen = true;
 
-    // User confirmation
     const { response } = await dialog.showMessageBox({
       type: 'question',
-      buttons: ['Update', 'Cancel'],
+      buttons: ['Update', 'Not now'],
       message: 'Update Available',
       detail: `New version ${remoteVersion} is available. Would you like to install it now?`
     });
