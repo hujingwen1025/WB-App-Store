@@ -44,7 +44,7 @@ function createProgressWindow() {
 
 function updateProgress(status, progress, cancellable = false) {
     if (progressWindow && !progressWindow.isDestroyed()) {
-        progressWindow.webContents.send('update-progress', [ status, progress, cancellable ]);
+        progressWindow.wxebContents.send('update-progress', [ status, progress, cancellable ]);
     }
 }
 
@@ -124,7 +124,7 @@ async function checkAppVersion() {
     updateProgress('Downloading update...', 10, true);
 
     // Download and install update
-    const downloadUrl = `https://github.com/hujingwen1025/WB-App-Store/releases/download/v${remoteVersion}/WB.App.Store.v${remoteVersion}.zip`;
+    const downloadUrl = `https://github.com/Exabyte-Technologies/WB-App-Store/releases/download/v${remoteVersion}/WB.App.Store.v${remoteVersion}.zip`;
     const zipPath = path.join(os.tmpdir(), `WB.App.Store.v${remoteVersion}.zip`);
     const extractPath = path.join(os.tmpdir(), `WB-App-Store-${remoteVersion}`);
     const appName = 'WB App Store.app';
@@ -275,7 +275,7 @@ async function checkAppVersion() {
 
 // Helper functions
 async function getRemoteVersion() {
-  const response = await fetch('https://raw.githubusercontent.com/hujingwen1025/WB-App-Store/refs/heads/main/version');
+  const response = await fetch('https://raw.githubusercontent.com/Exabyte-Technologies/WB-App-Store/refs/heads/main/version');
   return (await response.text()).trim();
 }
 
