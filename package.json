@@ -1,6 +1,6 @@
 {
   "name": "WB-App-Store",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web Based App Store for Mac",
   "main": "main.js",
   "scripts": {
@@ -39,5 +39,8 @@
     "extraResources": [
       "./extraResources/**"
     ]
+  },
+  "dependencies": {
+    "extract-zip": "^2.0.1"
   }
 }

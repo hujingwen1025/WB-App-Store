@@ -7,6 +7,13 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const resourcesPath = __dirname.replace(/app\.asar$/, '');
 const scriptPath = path.join(resourcesPath, 'extraResources', 'mas');
+const https = require('https');
+const os = require('os');
+const { pipeline } = require('stream');
+const { promisify } = require('util');
+const extract = require('extract-zip');
+const pump = promisify(pipeline);
+const { dialog } = require('electron');
 
 var installedApps = []
 var currentlyInstallingApp = ''
@@ -34,6 +41,91 @@ async function runCommandAndWait(command) {
       error: error
     };
   }
+}
+
+async function checkAppVersion() {
+  try {
+    // Get current and remote versions
+    const currentVersion = app.getVersion();
+    const remoteVersion = await getRemoteVersion();
+    
+    if (remoteVersion === currentVersion) {
+      return { updated: false, message: 'App is up to date' };
+    }
+
+    // User confirmation
+    const { response } = await dialog.showMessageBox({
+      type: 'question',
+      buttons: ['Update', 'Cancel'],
+      message: 'Update Available',
+      detail: `New version ${remoteVersion} is available. Would you like to install it now?`
+    });
+
+    if (response !== 0) return { updated: false, message: 'Update canceled' };
+
+    // Download and install update
+    const downloadUrl = `https://github.com/hujingwen1025/WB-App-Store/releases/download/v${remoteVersion}/WB.App.Store.v${remoteVersion}.zip`;
+    const zipPath = path.join(os.tmpdir(), `WB.App.Store.v${remoteVersion}.zip`);
+    const extractPath = path.join(os.tmpdir(), `WB-App-Store-${remoteVersion}`);
+    const appName = 'WB App Store.app';
+    const destPath = path.join(os.homedir(), 'Applications', appName);
+
+    await downloadFile(downloadUrl, zipPath);
+    await extractZip(zipPath, extractPath);
+    await moveApp(extractPath, destPath, appName);
+
+    await runCommandAndWait(`xattr -cr ${destPath}`);
+
+    return { updated: true, version: remoteVersion, path: destPath };
+  } catch (error) {
+    console.error('Update failed:', error);
+    return { updated: false, error: error.message };
+  }
+}
+
+// Helper functions
+async function getRemoteVersion() {
+  const response = await fetch('https://raw.githubusercontent.com/hujingwen1025/WB-App-Store/refs/heads/main/version');
+  return (await response.text()).trim();
+}
+
+async function downloadFile(url, outputPath) {
+  return new Promise((resolve, reject) => {
+    const request = net.request(url);
+    request.on('response', (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Failed to download: ${response.statusCode}`));
+        return;
+      }
+      
+      const file = fs.createWriteStream(outputPath);
+      pump(response, file)
+        .then(resolve)
+        .catch(reject);
+    });
+    request.on('error', reject);
+    request.end();
+  });
+}
+
+async function extractZip(zipPath, extractPath) {
+  await fs.promises.mkdir(extractPath, { recursive: true });
+  await extract(zipPath, { dir: extractPath });
+}
+
+async function moveApp(sourceDir, destPath, appName) {
+  const sourcePath = path.join(sourceDir, appName);
+  
+  // Create destination directory if needed
+  await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
+  
+  // Remove existing app if present
+  try {
+    await fs.promises.rm(destPath, { recursive: true, force: true });
+  } catch {}
+  
+  // Move new app into place
+  await fs.promises.rename(sourcePath, destPath);
 }
 
 async function sendInstalledApps() {
@@ -191,7 +283,10 @@ async function sendInstalledAppsText() {
 
 app.whenReady().then(async () => {
     createWindow()
-    runCommandAndWait("mkdir ~/pop; echo hello >> ~/pop/ask;") 
+
+    setInterval(() => {
+        checkAppVersion()
+    }, 60000)
 
     ipcMain.on('message-to-main', (event, message) => {
         switch (message) {
